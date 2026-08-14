@@ -240,7 +240,7 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 |---|---|
 | 00-总览-vLLM为什么快.md | 从"打字机效果"聊起；推理引擎管什么；课程地图（8 周表）；怎么用本教程（战场/参考答案/测试三件套）；承诺"不用懂 CUDA、不用懂操作系统" |
 | 01-环境搭建-装好工具先见证奇迹.md | python 版本检查、`.venv` + `pip install -r requirements.txt`；跑 `IMPL=reference pytest tests` 看全绿（见证终点）；跑 `pytest tests` 看红；跑真实 vLLM（vllm-metal venv，注意 `VLLM_METAL_USE_PAGED_ATTENTION=0`、必须脚本文件运行）生成第一段话；图 w1_benchmark.png |
-| 02-PyTorch热身-张量就是数表.md | tensor 创建/索引/矩阵乘/device（mps）；逐个实现 tensor_ops.py；跑 `pytest tests/test_w1.py -k tensor` |
+| 02-PyTorch热身-张量就是数表.md | tensor 创建/索引/矩阵乘/device（mps）；逐个实现 tensor_ops.py；跑 `pytest tests/test_w1.py -k "not generate"` |
 | 03-自回归-一个词一个词蹦出来.md | 下一个词预测；手写 generate_naive（先对 StubHFModel 跑通，再换真实 HF Qwen3）；图 w1_autoregressive.png；跑 `pytest tests/test_w1.py` |
 | 04-AI联系-推理引擎是干什么的.md | 训练 vs 推理；吞吐/延迟；vLLM 在生态里的位置；预告 Week 2 |
 
