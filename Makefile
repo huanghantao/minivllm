@@ -21,8 +21,11 @@ test-fast:
 figures:
 	$(PY) figures/gen_all.py
 
+# mdbook 会拷贝 src 下的一切，所以先把书的内容挑到 .book-src/
 book:
+	./scripts/stage_book.sh
 	mdbook build
 
 serve:
+	./scripts/stage_book.sh
 	mdbook serve --open
