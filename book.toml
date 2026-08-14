@@ -1,0 +1,15 @@
+[book]
+title = "minivllm：从零手写 LLM 推理引擎"
+authors = ["minivllm 教程组"]
+language = "zh"
+multilingual = false
+src = "."
+description = "参考 vLLM 源码，用 PyTorch 从零手写一个能跑真实模型的 LLM 推理引擎"
+
+[output.html]
+mathjax-support = true
+git-repository-url = ""
+
+[output.html.fold]
+enable = true
+level = 1

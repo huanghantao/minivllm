@@ -1,0 +1,9 @@
+{
+  "naive_hf_tps": 39.3,
+  "cached_hf_tps": 57.1,
+  "minivllm_b1_tps": 19.6,
+  "minivllm_b8_tps": 62.3,
+  "minivllm_ttft_ms": 62,
+  "vllm_b1_tps": 145.8,
+  "vllm_b8_tps": 143.3
+}

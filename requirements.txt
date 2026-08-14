@@ -1,0 +1,6 @@
+torch>=2.2
+transformers>=4.51
+pytest>=8.0
+matplotlib>=3.8
+numpy>=1.26
+safetensors>=0.4
