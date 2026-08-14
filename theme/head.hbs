@@ -1,0 +1,19 @@
+<!-- 自定义 HTML head：加载 MathJax 3，启用标准 LaTeX 分隔符 $...$ 与 $$...$$ -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$', '$']],
+    displayMath: [['$$', '$$']],
+    // 注意：不要开 processEscapes！mdBook 的 Markdown 会把源文件里的
+    // \\\\ 还原成 \\，MathJax 需要原样收到两个反斜杠才能换行；
+    // 开了 processEscapes 会再吃一层，多行公式就挤成一行了。
+  },
+  options: {
+    ignoreHtmlClass: 'no-math',
+  },
+  svg: {
+    fontCache: 'global',
+  },
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

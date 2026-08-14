@@ -6,7 +6,8 @@ src = ".book-src"
 description = "参考 vLLM 源码，用 PyTorch 从零手写一个能跑真实模型的 LLM 推理引擎"
 
 [output.html]
-mathjax-support = true
+# 不用内置 mathjax-support（它引的是 cdnjs 的 MathJax 2.7.1，老且网络不稳）；
+# 由 theme/head.hbs 加载 jsdelivr 的 MathJax 3。
 smart-punctuation = true
 git-repository-url = ""
 
