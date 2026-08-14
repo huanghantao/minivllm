@@ -99,9 +99,11 @@ def memory_bill():
         ax.annotate(f"{m / 1024:.1f} GB" if m >= 1024 else f"{m:.0f} MB",
                     (s, m), textcoords="offset points", xytext=(0, 8),
                     ha="center", fontsize=9, color=C_RED)
+    ax.set_xlim(0, 4600)  # 右侧留白，免得最后一个标注被边框切掉
+    ax.set_yscale("log")
+    ax.set_ylim(10, 4e4)  # 先定 log 轴范围：底部 10 MB，顶部留白给「14.0 GB」标注
     ax.set_xlabel("序列长度（token 数）")
     ax.set_ylabel("KV cache 占用")
-    ax.set_yscale("log")
     ax.set_yticks([100, 1000, 10000], ["100 MB", "1 GB", "10 GB"])
     ax.set_title("KV cache 内存账（Qwen3-0.6B，bf16）：每 token 约 112 KB")
     ax.legend()

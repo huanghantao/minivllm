@@ -19,13 +19,13 @@ def transformer_map():
 
     # 堆叠的 DecoderBlock
     for i, y in enumerate([7.9, 6.0]):
-        box(ax, (2.0, y), 6, 1.5, "", fc="#f7f7f7", ec=C_GRAY)
+        box(ax, (1.6, y), 6.8, 1.5, "", fc="#f7f7f7", ec=C_GRAY)
         ax.text(5, y + 1.15, f"第 {i} 层（共 N 层）", ha="center", fontsize=11,
                 weight="bold")
-        box(ax, (2.4, y + 0.15), 2.4, 0.62, "LayerNorm → 注意力 → 残差",
-            fc="#eaf7ea", ec="#2ca02c", fontsize=9)
-        box(ax, (5.2, y + 0.15), 2.4, 0.62, "LayerNorm → MLP → 残差",
-            fc="#f3eaf7", ec="#9467bd", fontsize=9)
+        box(ax, (1.9, y + 0.15), 3.0, 0.62, "LayerNorm → 注意力 → 残差",
+            fc="#eaf7ea", ec="#2ca02c", fontsize=8.5)
+        box(ax, (5.1, y + 0.15), 3.0, 0.62, "LayerNorm → MLP → 残差",
+            fc="#f3eaf7", ec="#9467bd", fontsize=8.5)
     ax.text(5, 5.45, "⋮", fontsize=22, ha="center")
 
     box(ax, (2.5, 3.6), 5, 1.0, "LayerNorm → lm_head", fc="#fff3e6", ec=C_ORANGE)
