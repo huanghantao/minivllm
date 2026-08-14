@@ -227,7 +227,8 @@ class Qwen3ForCausalLM(nn.Module):
             if fname.endswith(".safetensors"):
                 state.update(load_file(os.path.join(model_path, fname)))
         # HF 的键以 "model." 开头，我们的模块就是按这个结构命名的，
-        # 剥掉前缀即可对上；lm_head 与嵌入共享权重，checkpoint 里没有它。
+        # 剥掉前缀即可对上；lm_head 与嵌入共享权重——有的 checkpoint 存了它
+        # （Qwen3-0.6B 就存了），有的没存，两种都能兼容。
         state = {k.removeprefix("model."): v for k, v in state.items()}
         missing, unexpected = model.load_state_dict(state, strict=False)
         unexpected = [k for k in unexpected if k != "lm_head.weight"]
