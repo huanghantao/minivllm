@@ -6,11 +6,8 @@ numpy>=1.26
 safetensors>=0.4
 
 # ── 真实 vLLM（Week 1 第 1.5 节起使用；版本锁定 v0.27.1）──────────────
-# 故意不写进上面的清单：macOS 在 PyPI 上没有 wheel，要用 GitHub release
-# 的官方预编译 wheel + Metal 后端插件（PyPI 上的 vllm-metal 0.1.0 与
+# 故意不写进上面的清单：PyPI 上没有 Mac 版 wheel，要用 GitHub release 的
+# 官方预编译 wheel + Metal 后端插件（PyPI 上的 vllm-metal 0.1.0 与
 # vLLM 0.27 不兼容，必须用 GitHub 上适配 0.27.1 的 0.3.0.dev 构建）。
-# 安装命令（详见第 1.5 节）：
-#   macOS（Apple Silicon，需 Python 3.12）：
+# 安装命令（详见第 1.5 节；需 Python 3.12）：
 #     .venv/bin/pip install "vllm @ https://github.com/vllm-project/vllm/releases/download/v0.27.1/vllm-0.27.1%2Bcpu-cp312-cp312-macosx_11_0_arm64.whl" "vllm-metal @ https://github.com/vllm-project/vllm-metal/releases/download/v0.3.0.dev20260819070634/vllm_metal-0.3.0.dev20260819070634-cp312-cp312-macosx_11_0_arm64.whl"
-#   Linux：
-#     .venv/bin/pip install vllm==0.27.1
