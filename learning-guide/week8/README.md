@@ -44,7 +44,7 @@ continuous batching、采样、流式输出的推理引擎——**每一行都�
 | `minivllm/bench/metrics.py` | `benchmark_throughput` / `measure_ttft` |
 
 其余章节是"读"和"跑"：读真实 vLLM 源码（本地仓库
-`~/codeDir/pythonCode/vllm`）、跑三个实测脚本。
+`$VLLM_SRC`）、跑三个实测脚本。
 
 ## 常用命令速查
 
@@ -61,7 +61,7 @@ IMPL=reference .venv/bin/pytest tests/test_w8.py
 
 # 真实 vLLM 要用它自己的 venv（注意两个环境变量，原因见第 5 章）
 HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 \
-  ~/codeDir/pythonCode/vllm-metal/.venv-vllm-metal/bin/python scripts/bench_vllm.py
+  $VLLM_PY scripts/bench_vllm.py
 
 # 把教程构建成书
 make book

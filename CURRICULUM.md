@@ -7,7 +7,7 @@
 
 ## 0. 一句话课程定位
 
-参考真实 vLLM 源码（`~/codeDir/pythonCode/vllm`），用 PyTorch 从零手写一个
+参考真实 vLLM 源码（`$VLLM_SRC`），用 PyTorch 从零手写一个
 **能加载 Qwen3-0.6B 真实权重、带分页 KV cache 和 continuous batching 的迷你推理引擎**，
 全程在 macOS（Apple Silicon，MPS）上可跑。
 
@@ -222,7 +222,7 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 
 ### 真实 vLLM 环境（第 1/8 章要用）
 
-- venv：`~/codeDir/pythonCode/vllm-metal/.venv-vllm-metal/bin/python`
+- venv：`$VLLM_PY`
 - 本机是 macOS 14.1，预编译 Metal kernel 需要 macOS 15+，所以必须加环境变量
   `VLLM_METAL_USE_PAGED_ATTENTION=0`（退回 MLX 自带注意力）。
 - vLLM 会 fork 子进程，**必须从 .py 脚本文件运行**，不能用 `python - <<EOF` 或 `python -c`。

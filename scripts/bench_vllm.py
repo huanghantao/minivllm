@@ -1,7 +1,7 @@
 """实测：真实 vLLM（vllm-metal）batch 1 / batch 8 的吞吐。
 
 用 vllm-metal 的 venv 跑（注意必须用脚本文件方式运行，vLLM 要多进程）：
-    ~/codeDir/pythonCode/vllm-metal/.venv-vllm-metal/bin/python scripts/bench_vllm.py
+    $VLLM_PY scripts/bench_vllm.py
 结果合并进 figures/data/bench.json。
 """
 

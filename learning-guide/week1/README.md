@@ -46,7 +46,7 @@ Week 1 是**见证之周**：先别急着懂原理，先看到现象、摸到工
 | `.venv/bin/pytest tests` | 战场现状：你的实现没填，大片红（正常！） |
 | `.venv/bin/pytest tests/test_w1.py` | 本周测试：填完第 2、3 章后应该 11 条全绿 |
 | `.venv/bin/pytest tests -m "not slow"` | 跳过需要真实权重的慢测试 |
-| `HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 ~/codeDir/pythonCode/vllm-metal/.venv-vllm-metal/bin/python hello_vllm.py` | 跑真实 vLLM（第 1 章详解） |
+| `HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 $VLLM_PY hello_vllm.py` | 跑真实 vLLM（第 1 章详解） |
 | `make book` | 把教程构建成 HTML 书（输出在 `book/` 目录） |
 
 > ⚠️ 易踩坑：本周所有 `pytest` 命令都要在**仓库根目录**下执行，

@@ -1,7 +1,7 @@
 # vLLM 源码对照（Week 8 阅读材料）
 
 本教程的每个 minivllm 模块都对应真实 vLLM 里的一处实现。
-本地仓库路径：`~/codeDir/pythonCode/vllm`。
+本地仓库路径：`$VLLM_SRC`。
 
 ## 模块对照表
 

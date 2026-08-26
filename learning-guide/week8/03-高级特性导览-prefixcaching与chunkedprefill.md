@@ -163,7 +163,7 @@ decode 阶段"，只有"每个请求还差几个 token 没算"。那么长 prefi
 
 ```bash
 grep -n -A 20 "def get_computed_blocks" \
-  ~/codeDir/pythonCode/vllm/vllm/v1/core/kv_cache_manager.py
+  $VLLM_SRC/vllm/v1/core/kv_cache_manager.py
 ```
 
    找到 `find_longest_cache_hit` 的调用，回答：为什么注释里强调
