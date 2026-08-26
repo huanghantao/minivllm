@@ -6,8 +6,9 @@
 > 3. 看懂真实块池 `get_new_blocks()` 比我们的 `allocate()` 多做的两件事；
 > 4. 拿到一张"我们的 ↔ 真实的"逐条对照表，以后自己读源码不迷路。
 
-所有引用都来自你本地 clone 的仓库 `$VLLM_SRC`，行号是写稿时的真实行号
-（源码会演进，对不上几行很正常，用 `grep` 按函数名找）。
+所有引用都来自你 `.venv` 里安装的 vLLM——**版本已锁定 v0.27.1，
+本章的行号就是该版本的真实行号**，和你看到的应该完全一致
+（对不上先确认 `vllm.__version__` 是 0.27.1，再用 `grep` 按函数名找）。
 
 ---
 
@@ -25,7 +26,7 @@ Week 5 你写的 `Scheduler.schedule()` 大约 40 行；真实版 2900 行的文
 
 ## 2.2 第一站：`RequestStatus`——我们的三态长大了
 
-打开 `vllm/v1/request.py`，找到第 351 行：
+打开 `vllm/v1/request.py`，找到第 348 行：
 
 ```python
 class RequestStatus(enum.IntEnum):
@@ -47,7 +48,7 @@ class RequestStatus(enum.IntEnum):
     FINISHED_REPETITION = enum.auto()
 ```
 
-（`$VLLM_SRC/vllm/v1/request.py`，第 351~367 行）
+（`vllm/v1/request.py`，第 348~364 行）
 
 我们的是 3 个状态，真实的是 13 个。但拆开来全是熟人：
 
@@ -277,7 +278,7 @@ waiting 循环里还藏着一个第 3 章的主角（第 746~767 行，节选）
         return ret
 ```
 
-（`$VLLM_SRC/vllm/v1/core/block_pool.py`，第 647~677 行）
+（`vllm/v1/core/block_pool.py`，第 647~677 行）
 
 骨架和我们的 `allocate()` 分毫不差：**空闲队列 `free_block_queue` 弹出来
 （`popleft_n` 就是批量版 `popleft`），池空就报错**。多出来的两样东西：
@@ -299,16 +300,17 @@ waiting 循环里还藏着一个第 3 章的主角（第 746~767 行，节选）
 
 | 我们 Week 5/4 写的 | 真实 vLLM v1 | 差别 |
 |---|---|---|
-| `RequestStatus` 三态 | 13 态（`request.py:351`） | 多了等待细分、抢占、多种结束原因 |
+| `RequestStatus` 三态 | 13 态（`request.py:348`） | 多了等待细分、抢占、多种结束原因 |
 | `finish_reason` 字段 | 编码进状态名 + `_FINISHED_REASON_MAP` | 一处信息，两种放法 |
-| `schedule()` 分 prefill/decode 两批 | 统一成"补 token"（`scheduler.py:442` 注释） | 真实版视角更一般 |
+| `schedule()` 分 prefill/decode 两批 | 统一成"补 token"（`scheduler.py:441` 注释） | 真实版视角更一般 |
 | 保守准入：块池装得下才放行 | token budget + 容量闸门 + **抢占**（`scheduler.py:590`） | 真实版敢踢人 |
-| `max_num_seqs=8` | `max_num_running_reqs`（`scheduler.py:110`） | 同款旋钮 |
+| `max_num_seqs=8` | `max_num_running_reqs`（`scheduler.py:109`） | 同款旋钮 |
 | `BlockPool.allocate()` 发一块 | `get_new_blocks()` 发一串 + 引用计数 + 逐出（`block_pool.py:647`） | 为前缀缓存服务 |
 
-> ⚠️ **易踩坑：** 行号会漂移。本章给的行号是写稿时本机仓库的真实行号，
-> vLLM 迭代很快，你打开时对不上几行甚至几十行都正常——**按函数名 grep**
-> （`grep -n "def schedule" ...`）才是永恒的定位方式。
+> ⚠️ **易踩坑：** 行号对不上，多半是版本装错了。本课程锁定 v0.27.1，
+> 本章给的行号和你 `.venv` 里的文件应该完全一致；对不上就先跑
+> `.venv/bin/python -c "import vllm; print(vllm.__version__)"` 确认版本。
+> 当然，**按函数名 grep**（`grep -n "def schedule" ...`）永远是万能定位方式。
 
 > 📌 **划重点：** 真实 `schedule()` = 我们的骨架（running 优先、waiting 候补、
 > 容量闸门）+ 三件新武器（token budget、抢占、前缀缓存钩子）。骨架你写过了，
@@ -321,8 +323,9 @@ waiting 循环里还藏着一个第 3 章的主角（第 746~767 行，节选）
 1. 自己把 2.3 节那段 `NOTE(woosuk)` 注释在真实文件里找出来读一遍原文：
 
 ```bash
+VLLM_DIR=$(.venv/bin/python -c "import os, vllm; print(os.path.dirname(vllm.__file__))")
 grep -n -A 10 "NOTE(woosuk) on the scheduling algorithm" \
-  $VLLM_SRC/vllm/v1/core/sched/scheduler.py
+  $VLLM_DIR/v1/core/sched/scheduler.py
 ```
 
 2. 在真实 `scheduler.py` 里找到 `token_budget -= num_new_tokens` 这一行

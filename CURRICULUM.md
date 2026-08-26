@@ -7,7 +7,7 @@
 
 ## 0. 一句话课程定位
 
-参考真实 vLLM 源码（`$VLLM_SRC`），用 PyTorch 从零手写一个
+参考真实 vLLM 源码（pip 安装 `vllm==0.27.1`，源码就在 `.venv` 的 site-packages 里），用 PyTorch 从零手写一个
 **能加载 Qwen3-0.6B 真实权重、带分页 KV cache 和 continuous batching 的迷你推理引擎**，
 全程在 macOS（Apple Silicon，MPS）上可跑。
 
@@ -222,10 +222,17 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 
 ### 真实 vLLM 环境（第 1/8 章要用）
 
-- venv：`$VLLM_PY`
+- **pip 安装进同一个 `.venv`，版本锁定 `vllm==0.27.1`**（不用 clone 源码仓库）：
+  - macOS（Apple Silicon，需 Python 3.12）：
+    `.venv/bin/pip install "vllm @ https://github.com/vllm-project/vllm/releases/download/v0.27.1/vllm-0.27.1%2Bcpu-cp312-cp312-macosx_11_0_arm64.whl" "vllm-metal @ https://github.com/vllm-project/vllm-metal/releases/download/v0.3.0.dev20260819070634/vllm_metal-0.3.0.dev20260819070634-cp312-cp312-macosx_11_0_arm64.whl"`
+    （注意：PyPI 上的 vllm-metal 0.1.0 与 vLLM 0.27 不兼容，必须用 GitHub 上的 0.3.0.dev 构建）
+  - Linux：`.venv/bin/pip install vllm==0.27.1`
+- 源码就在 venv 里：`.venv/lib/python3.12/site-packages/vllm/`；
+  教程引用真实源码时直接写包内相对路径（如 `vllm/v1/core/sched/scheduler.py`）。
 - 本机是 macOS 14.1，预编译 Metal kernel 需要 macOS 15+，所以必须加环境变量
   `VLLM_METAL_USE_PAGED_ATTENTION=0`（退回 MLX 自带注意力）。
-- vLLM 会 fork 子进程，**必须从 .py 脚本文件运行**，不能用 `python - <<EOF` 或 `python -c`。
+- vLLM 会 spawn 独立的 EngineCore 子进程，**必须从带 `if __name__ == "__main__":`
+  守卫的 .py 脚本文件运行**，不能用 `python - <<EOF` 或 `python -c`。
 - 模型走本地 HF 缓存：`HF_HUB_OFFLINE=1`。
 
 ## 7. 每周任务分派
@@ -239,7 +246,7 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 | 文件 | 主题与要点 |
 |---|---|
 | 00-总览-vLLM为什么快.md | 从"打字机效果"聊起；推理引擎管什么；课程地图（8 周表）；怎么用本教程（战场/参考答案/测试三件套）；承诺"不用懂 CUDA、不用懂操作系统" |
-| 01-环境搭建-装好工具先见证奇迹.md | python 版本检查、`.venv` + `pip install -r requirements.txt`；跑 `IMPL=reference pytest tests` 看全绿（见证终点）；跑 `pytest tests` 看红；跑真实 vLLM（vllm-metal venv，注意 `VLLM_METAL_USE_PAGED_ATTENTION=0`、必须脚本文件运行）生成第一段话；图 w1_benchmark.png |
+| 01-环境搭建-装好工具先见证奇迹.md | python 版本检查（建议 3.12）、`.venv` + `pip install -r requirements.txt`；跑 `IMPL=reference pytest tests` 看全绿（见证终点）；跑 `pytest tests` 看红；pip 安装真实 vLLM（锁定 v0.27.1，macOS 用 GitHub release wheel + vllm-metal，注意 `VLLM_METAL_USE_PAGED_ATTENTION=0`、必须脚本文件运行）生成第一段话；源码约定框（源码在 venv 的 site-packages 里，定位命令）；图 w1_benchmark.png |
 | 02-PyTorch热身-张量就是数表.md | tensor 创建/索引/矩阵乘/device（mps）；逐个实现 tensor_ops.py；跑 `pytest tests/test_w1.py -k "not generate"` |
 | 03-自回归-一个词一个词蹦出来.md | 下一个词预测；手写 generate_naive（先对 StubHFModel 跑通，再换真实 HF Qwen3）；图 w1_autoregressive.png；跑 `pytest tests/test_w1.py` |
 | 04-AI联系-推理引擎是干什么的.md | 训练 vs 推理；吞吐/延迟；vLLM 在生态里的位置；预告 Week 2 |

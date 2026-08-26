@@ -1,7 +1,8 @@
 # vLLM 源码对照（Week 8 阅读材料）
 
 本教程的每个 minivllm 模块都对应真实 vLLM 里的一处实现。
-本地仓库路径：`$VLLM_SRC`。
+源码位置：pip 安装的 `vllm` 包内（`.venv/lib/python3.12/site-packages/vllm/`，
+定位命令见 Week 1 第 1 章）。**版本锁定 v0.27.1**，书中行号即该版本的真实行号。
 
 ## 模块对照表
 

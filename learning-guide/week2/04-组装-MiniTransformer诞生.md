@@ -167,7 +167,7 @@ MiniTransformer** 真跑了一次前向、把第 0 层 4 个头的注意力权�
 
 一个乐队不需要先有好歌才能排练——先把乐器调准。
 
-> 📌 **对标 vLLM：** 真实 Qwen3 的整机在 `$VLLM_SRC/vllm/model_executor/models/qwen3.py`：
+> 📌 **对标 vLLM：** 真实 Qwen3 的整机在 `.venv` 里的 `vllm/model_executor/models/qwen3.py`：
 > `Qwen3Model`（约 264 行，继承自 `qwen2.py` 的 `Qwen2Model`）装着
 > `embed_tokens` + 一串 `Qwen3DecoderLayer` + 最后的 `norm`；
 > `Qwen3ForCausalLM`（约 271 行）再补上 `lm_head`。和你的 `MiniTransformer`

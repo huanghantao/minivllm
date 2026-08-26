@@ -9,7 +9,7 @@
 
 ## 5.1 打开真实 vLLM 的模型目录
 
-真实 vLLM 仓库（本地路径 `$VLLM_SRC`）里，所有模型的实现都住在一个目录：
+真实 vLLM（v0.27.1，就装在你的 `.venv` 里）中，所有模型的实现都住在一个目录：
 
 ```
 vllm/model_executor/models/     ← 每个模型一个文件：qwen3.py、llama.py、gpt2.py……
@@ -112,7 +112,7 @@ naive 方式只有 **39.3 tok/s**，而真实 vLLM 能到 **145.8 tok/s**。
 
 本章没有代码填空，练习是"去真实世界里认亲"：
 
-1. 打开 `$VLLM_SRC/vllm/model_executor/models/qwen3.py`，
+1. 打开 `.venv` 里的 `vllm/model_executor/models/qwen3.py`，
    找到 `Qwen3Attention`、`Qwen3DecoderLayer`、`Qwen3ForCausalLM` 三个类，
    在你自己的 `minivllm/model/transformer.py` 里指出各自对应的类；
    在 `Qwen3Attention` 里找到 `self.scaling`，说出它对应你写的哪一行。

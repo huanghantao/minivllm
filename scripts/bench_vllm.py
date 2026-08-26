@@ -1,7 +1,8 @@
-"""实测：真实 vLLM（vllm-metal）batch 1 / batch 8 的吞吐。
+"""实测：真实 vLLM（v0.27.1，vllm-metal 后端）batch 1 / batch 8 的吞吐。
 
-用 vllm-metal 的 venv 跑（注意必须用脚本文件方式运行，vLLM 要多进程）：
-    $VLLM_PY scripts/bench_vllm.py
+用课程的 .venv 跑（注意必须用脚本文件方式运行，vLLM 要多进程）：
+    HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 \
+      .venv/bin/python scripts/bench_vllm.py
 结果合并进 figures/data/bench.json。
 """
 

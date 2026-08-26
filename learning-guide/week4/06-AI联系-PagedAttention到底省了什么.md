@@ -82,7 +82,7 @@ PagedAttention 之后，业界几乎再没人用"连续分配"做在线服务了
 | `prefill` / `decode_batch` | 模型的引擎接口，认 slot_mapping 和块表两张通行证 | 模型前向 + attention metadata（`vllm/v1/worker/`） |
 | 对拍测试 | 换存储不换结果的铁证 | vLLM 自己的正确性测试也是同款思路 |
 
-> 📌 **对标 vLLM：** 至此你已经认识了 vLLM 的心脏地带。块池、页表、按槽位写 cache、按块表做注意力——打开真实仓库 `$VLLM_SRC`，`vllm/v1/core/block_pool.py` 只有两百来行，现在去读，每一行你都讲得出在干嘛。Week 8 我们会正式带读源码，但你已经可以提前去探营了。
+> 📌 **对标 vLLM：** 至此你已经认识了 vLLM 的心脏地带。块池、页表、按槽位写 cache、按块表做注意力——打开 `.venv` 里安装的真实 vLLM，`vllm/v1/core/block_pool.py` 只有两百来行，现在去读，每一行你都讲得出在干嘛。Week 8 我们会正式带读源码，但你已经可以提前去探营了。
 
 > 📌 **划重点：** PagedAttention 省的是 KV cache 的三种浪费，换来的是显存里更高的并发、更高的吞吐、更低的单用户成本。我们用 gather 换正确性，真实 vLLM 用 kernel 换性能，思想是同一个。而分页真正的威力下周才释放——continuous batching 的每一次"随时来、随时走"，踩的都是本周铺的地基。
 

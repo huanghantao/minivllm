@@ -14,7 +14,7 @@
 能批量、能流式的**引擎**，而且真能驱动 Qwen3-0.6B 说人话。
 这确实是里程碑——值得庆祝三秒钟。
 
-好，庆祝完了。现在打开真实 vLLM 的仓库（`$VLLM_SRC`），
+好，庆祝完了。现在打开 `.venv` 里安装的真实 vLLM 源码，
 泼自己一盆冷水：我们的 `LLM` 大约 80 行，真实的 `vllm/entrypoints/llm.py`
 近两千行；我们的引擎是**单机单进程同步阻塞**的，而真实 vLLM 要伺候的是
 **成百上千个并发用户通过 HTTP 同时砸请求**。
@@ -143,7 +143,7 @@ vllm/v1/engine/
 
 本章是"联系与展望"章，练习以侦察为主：
 
-1. （侦察题）打开 `$VLLM_SRC/vllm/v1/engine/core.py`，
+1. （侦察题）打开 `.venv` 里的 `vllm/v1/engine/core.py`，
    找到 `EngineCore.step` 方法（docstring 就写着
    "Schedule, execute, and make output"），确认你能认出五拍里的至少三拍：
    点名（`schedule()`）、模型执行（`execute_model` / `sample_tokens`）、
