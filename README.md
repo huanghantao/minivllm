@@ -43,7 +43,8 @@ python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 ```
 
-教程在 macOS（Apple Silicon）上开发验证，模型用本地缓存的 Qwen3-0.6B。
+教程在 macOS（Apple Silicon）上开发验证（开发机具体配置见 Week 1 第 1 章 1.2 节），
+模型用本地缓存的 Qwen3-0.6B。
 需要加载真实权重的测试标记为 slow：`.venv/bin/pytest tests -m slow`。
 
 ## 课程地图
