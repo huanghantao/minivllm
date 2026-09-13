@@ -1,124 +1,150 @@
-"""W1：sum/mean 的 dim 参数——「消灭一维」到底消灭了什么。
+"""W1：用“谁留下、谁被合并”解释 sum/mean 的 dim 参数。
 
-生成两张图：
-- w1_tensor_subscripts.png：给每个数贴两个下标（i 是第 0 维，j 是第 1 维）；
-- w1_tensor_dim_sum.png：sum(dim=1) 横着压扁每行 vs sum(dim=0) 竖着压扁每列。
+生成：
+- w1_tensor_dim_sum.png：每行求和与每列平均的简化对照图。
 """
 
-import sys
 import pathlib
+import sys
+
+from matplotlib.patches import FancyBboxPatch, Rectangle
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from figures._common import C_BLUE, C_GREEN, C_ORANGE, arrow, box, canvas, save
 
-VALUES = [[1, 2, 3], [4, 5, 6]]          # 教程 2.4 节用的 2×3 例子
-IN_FC, IN_EC = "#eef4fb", C_BLUE          # 输入格子：蓝
-OUT_FC, OUT_EC = "#fff3e6", C_ORANGE      # 结果格子：橙
+SCORES = [[80, 90, 100], [60, 70, 80]]
+SUBJECTS = ["语文", "数学", "英语"]
+STUDENTS = ["小明", "小红"]
+
+INPUT_FILL = "#eef4fb"
+RESULT_FILL = "#eaf7ea"
+PANEL_FILL = "#fbfcfe"
+TEXT = "#333333"
+MUTED = "#666666"
 
 
-def draw_grid(ax, x0, y0, cw, ch, values, highlight=None):
-    """画一张 nrows×ncols 的数表。返回 (右边缘 x, 各行中心 y, 各列中心 x)。
+def draw_panel(ax, x, y, w, h):
+    """画一个淡色圆角面板。"""
+    panel = FancyBboxPatch(
+        (x, y),
+        w,
+        h,
+        boxstyle="round,pad=0.12",
+        facecolor=PANEL_FILL,
+        edgecolor="#d9e2ec",
+        linewidth=1.2,
+        zorder=0,
+    )
+    ax.add_patch(panel)
 
-    highlight=(i, j) 时，该格子用绿色高亮。
-    """
-    nrows, ncols = len(values), len(values[0])
-    highlight = highlight or (-1, -1)
-    for i in range(nrows):
-        for j in range(ncols):
+
+def draw_score_grid(ax, x0, y0, cw=1.35, ch=1.0):
+    """画 2×3 成绩表，返回行中心、列中心和边界。"""
+    rows = len(SCORES)
+    cols = len(SCORES[0])
+
+    for i, row in enumerate(SCORES):
+        y = y0 + (rows - 1 - i) * ch
+        for j, value in enumerate(row):
             x = x0 + j * cw
-            y = y0 + (nrows - 1 - i) * ch   # i=0 画在最上面
-            fc, ec, lw = IN_FC, IN_EC, 1.5
-            if (i, j) == highlight:
-                fc, ec, lw = "#eaf7ea", C_GREEN, 2.5
-            box(ax, (x, y), cw, ch, str(values[i][j]), fc=fc, ec=ec,
-                fontsize=11.5, lw=lw)
-    row_centers = [y0 + (nrows - 1 - i + 0.5) * ch for i in range(nrows)]
-    col_centers = [x0 + (j + 0.5) * cw for j in range(ncols)]
-    return x0 + ncols * cw, row_centers, col_centers
+            ax.add_patch(
+                Rectangle(
+                    (x, y),
+                    cw,
+                    ch,
+                    facecolor=INPUT_FILL,
+                    edgecolor=C_BLUE,
+                    linewidth=1.5,
+                    zorder=2,
+                )
+            )
+            ax.text(
+                x + cw / 2,
+                y + ch / 2,
+                str(value),
+                ha="center",
+                va="center",
+                fontsize=11.5,
+                color=TEXT,
+                zorder=3,
+            )
+
+    row_centers = [y0 + (rows - 1 - i + 0.5) * ch for i in range(rows)]
+    col_centers = [x0 + (j + 0.5) * cw for j in range(cols)]
+
+    for student, cy in zip(STUDENTS, row_centers):
+        ax.text(x0 - 0.25, cy, student, ha="right", va="center", fontsize=10.5, color=MUTED)
+    for subject, cx in zip(SUBJECTS, col_centers):
+        ax.text(cx, y0 + rows * ch + 0.22, subject, ha="center", va="bottom", fontsize=10.5, color=MUTED)
+
+    return {
+        "right": x0 + cols * cw,
+        "bottom": y0,
+        "rows": row_centers,
+        "cols": col_centers,
+    }
 
 
-def note(ax, xy, text, color="#555555", fontsize=10.5, ha="center"):
-    ax.text(xy[0], xy[1], text, fontsize=fontsize, color=color, ha=ha,
-            va="center")
+def label_pill(ax, x, y, w, text, color, fill):
+    """画“留下/合并”说明标签。"""
+    box(ax, (x, y), w, 0.58, text, fc=fill, ec=color, fontsize=10.2, lw=1.3)
 
 
 def main():
-    # ---------- 图 1：给每个数贴两个下标 ----------
-    fig, ax = canvas(w=9, h=5.2, xlim=(0, 12), ylim=(0, 7.2))
+    fig, ax = canvas(w=12, h=6.8, xlim=(0, 16), ylim=(0, 9.1))
 
-    ax.text(6, 6.75, "每个数由两个下标定位：t[i, j]", fontsize=14,
-            ha="center", color="#333333")
+    ax.text(8, 8.72, "dim 决定“合并谁”", ha="center", va="center", fontsize=16, color=TEXT, weight="bold")
+    ax.text(
+        8,
+        8.28,
+        "先看谁要各自留下一个结果，再找出被合并的那一维",
+        ha="center",
+        va="center",
+        fontsize=10.8,
+        color=MUTED,
+    )
 
-    x_right, row_c, col_c = draw_grid(ax, 4.3, 2.4, 1.7, 1.5, VALUES,
-                                      highlight=(1, 2))
+    draw_panel(ax, 0.35, 0.85, 7.35, 6.95)
+    draw_panel(ax, 8.3, 0.85, 7.35, 6.95)
 
-    # 列号 j（第 1 维）标在表格上方
-    ax.text(sum(col_c) / 3, 6.15, "第 1 维 = 列号 j（横着数）", fontsize=12.5,
-            color=C_ORANGE, ha="center")
-    for j, cx in enumerate(col_c):
-        ax.text(cx, 5.6, f"j={j}", fontsize=12, color=C_ORANGE, ha="center")
+    # 左：每名学生一个总分——留下学生，合并科目。
+    ax.text(4.0, 7.35, "每名学生一个总分", ha="center", fontsize=13.2, color=TEXT, weight="bold")
+    ax.text(4.0, 6.92, "每行求和：scores.sum(dim=1)", ha="center", fontsize=10.7, color=C_BLUE)
+    left = draw_score_grid(ax, 1.25, 4.0)
 
-    # 行号 i（第 0 维）标在表格左侧
-    note(ax, (1.7, 3.95), "第 0 维 = 行号 i\n（竖着数）", color=C_BLUE,
-         fontsize=12.5)
-    for i, cy in enumerate(row_c):
-        ax.text(3.9, cy, f"i={i}", fontsize=12, color=C_BLUE, ha="right")
+    ax.text(5.9, 6.15, "每行 3 个数\n合成 1 个", ha="center", va="center", fontsize=10.2, color=C_ORANGE)
+    for cy, result in zip(left["rows"], ["270", "210"]):
+        arrow(ax, (left["right"] + 0.08, cy), (6.15, cy), color=C_ORANGE, lw=1.7)
+        box(ax, (6.15, cy - 0.42), 1.0, 0.84, result, fc=RESULT_FILL, ec=C_GREEN, fontsize=11.5, lw=1.5)
 
-    # 高亮格子：两个下标一起定位到它
-    ax.text(10.6, 1.55, "t[1, 2] 就是它：\n行号 1 + 列号 2", fontsize=10.5,
-            color=C_GREEN, ha="center",
-            bbox=dict(boxstyle="round,pad=0.35", fc="#eaf7ea", ec=C_GREEN))
-    arrow(ax, (10.15, 2.05), (9.25, 2.75), color=C_GREEN, lw=1.6)
+    label_pill(ax, 0.9, 2.35, 3.0, "留下：学生（第 0 维）", C_GREEN, RESULT_FILL)
+    label_pill(ax, 4.15, 2.35, 3.0, "合并：科目（第 1 维）", C_ORANGE, "#fff3e6")
+    ax.text(4.0, 1.58, "所以 dim=1　　shape：(2, 3) → (2,)", ha="center", fontsize=10.7, color=TEXT, weight="bold")
 
-    note(ax, (6, 0.6), "shape = (2, 3)：i 能取 2 个值，j 能取 3 个值"
-         "——shape 的第几个数，就是第几个下标", fontsize=11.5)
+    # 右：每门科目一个平均分——留下科目，合并学生。
+    ax.text(12.0, 7.35, "每门科目一个平均分", ha="center", fontsize=13.2, color=TEXT, weight="bold")
+    ax.text(12.0, 6.92, "每列平均：scores.mean(dim=0)", ha="center", fontsize=10.7, color=C_BLUE)
+    right = draw_score_grid(ax, 10.0, 4.35)
 
-    save(fig, "w1_tensor_subscripts.png")
+    ax.text(14.75, 5.35, "每列 2 个数\n合成 1 个", ha="center", va="center", fontsize=10.2, color=C_ORANGE)
+    for cx, result in zip(right["cols"], ["70", "80", "90"]):
+        arrow(ax, (cx, right["bottom"] - 0.04), (cx, 3.45), color=C_ORANGE, lw=1.7)
+        box(ax, (cx - 0.48, 2.62), 0.96, 0.78, result, fc=RESULT_FILL, ec=C_GREEN, fontsize=11.2, lw=1.5)
 
-    # ---------- 图 2：两种消灭方向 ----------
-    fig, ax = canvas(w=10, h=8.2, xlim=(0, 14), ylim=(0, 12))
+    label_pill(ax, 8.85, 1.72, 3.0, "留下：科目（第 1 维）", C_GREEN, RESULT_FILL)
+    label_pill(ax, 12.1, 1.72, 3.0, "合并：学生（第 0 维）", C_ORANGE, "#fff3e6")
+    ax.text(12.0, 1.08, "所以 dim=0　　shape：(2, 3) → (3,)", ha="center", fontsize=10.7, color=TEXT, weight="bold")
 
-    # --- 上半：sum(dim=1)，横着压扁每行 ---
-    ax.text(0.3, 11.35, "t.sum(dim=1)：消灭第 1 维（列号 j）", fontsize=13,
-            ha="left", color="#333333")
-
-    right_a, rows_a, _ = draw_grid(ax, 1.0, 8.15, 1.3, 1.15, VALUES)
-    sums = [["1+2+3 = 6", "4+5+6 = 15"], [6.0, 15.0]]
-    for i, cy in enumerate(rows_a):
-        # 从行的右边缘扇出三条线，汇聚到右边的结果格子
-        for off in (-0.38, 0.0, 0.38):
-            arrow(ax, (right_a, cy + off), (8.3, cy), color=C_BLUE, lw=1.5)
-        box(ax, (8.3, cy - 0.575), 2.0, 1.15, sums[0][i],
-            fc=OUT_FC, ec=OUT_EC, fontsize=10.5)
-    note(ax, (6.7, 10.35), "每行的 3 个格子，\n横着压成 1 个", color="#555555")
-    note(ax, (9.3, 7.75), "结果 tensor([6., 15.])，形状 (2,)", fontsize=10)
-    note(ax, (12.1, 9.35), "被划掉的下标：j\n幸存的下标：i（行号）\n"
-         "→ 按行排列，长度 = 行数\n形状 (2, 3) → (2,)", fontsize=11,
-         color="#333333")
-
-    ax.plot([0.3, 13.7], [6.6, 6.6], color="#dddddd", lw=1, ls="--")
-
-    # --- 下半：sum(dim=0)，竖着压扁每列 ---
-    ax.text(0.3, 6.05, "t.sum(dim=0)：消灭第 0 维（行号 i）", fontsize=13,
-            ha="left", color="#333333")
-
-    _, rows_b, cols_b = draw_grid(ax, 1.0, 3.2, 1.3, 1.15, VALUES)
-    means = ["1+4 = 5", "2+5 = 7", "3+6 = 9"]
-    bottom_b = 3.2
-    for j, cx in enumerate(cols_b):
-        # 从列的底边缘扇出两条线，汇聚到下边的结果格子
-        for off in (-0.38, 0.38):
-            arrow(ax, (cx + off, bottom_b), (cx, 2.75), color=C_BLUE, lw=1.5)
-        box(ax, (cx - 0.85, 1.6), 1.7, 1.15, means[j],
-            fc=OUT_FC, ec=OUT_EC, fontsize=10)
-    note(ax, (7.0, 4.45), "每列的 2 个格子，\n竖着压成 1 个", color="#555555")
-    note(ax, (2.95, 1.05), "结果 tensor([5., 7., 9.])，形状 (3,)", fontsize=10)
-    note(ax, (10.2, 2.35), "被划掉的下标：i\n幸存的下标：j（列号）\n"
-         "→ 按列排列，长度 = 列数\n形状 (2, 3) → (3,)", fontsize=11,
-         color="#333333")
-    ax.annotate("", xy=(8.35, 2.35), xytext=(5.6, 2.35),
-                arrowprops=dict(arrowstyle="-|>", color="#999999", lw=1.5,
-                                mutation_scale=14))
+    ax.text(
+        8,
+        0.3,
+        "“每行 / 每列”说的是谁留下；dim 说的是谁被合并。",
+        ha="center",
+        va="center",
+        fontsize=11.8,
+        color=TEXT,
+        weight="bold",
+    )
 
     save(fig, "w1_tensor_dim_sum.png")
 
