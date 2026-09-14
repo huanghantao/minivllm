@@ -95,6 +95,8 @@ minivllm/
 | 文件 | 内容 | 归属周 |
 |---|---|---|
 | w1_autoregressive.png | 自回归流程：新词接回输入 | W1 |
+| w1_generate_naive_one_round.png | generate_naive 单轮张量与形状变化 | W1 |
+| w1_generate_naive_loop.png | generate_naive 循环与两条退出路径 | W1 |
 | w1_benchmark.png | 实测：naive 39 vs vLLM 146 tok/s | W1 |
 | w2_transformer_map.png | MiniTransformer 结构图 | W2 |
 | w2_attention_heatmap.png | 真实注意力权重热力图（因果掩码） | W2 |
