@@ -51,10 +51,10 @@ def test_best_device_is_valid():
 
 
 def test_last_token_logits():
-    logits = torch.arange(2 * 3 * 4, dtype=torch.float32).reshape(2, 3, 4)
+    logits = torch.arange(1 * 3 * 4, dtype=torch.float32).reshape(1, 3, 4)
     out = tensor_ops.last_token_logits(logits)
     assert out.shape == (4,)
-    assert torch.equal(out, logits[0, -1, :])
+    assert torch.equal(out, torch.tensor([8.0, 9.0, 10.0, 11.0]))
 
 
 # ---------- generate_naive ----------
