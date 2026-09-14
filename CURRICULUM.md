@@ -100,6 +100,8 @@ minivllm/
 | w1_benchmark.png | 实测：naive 39 vs vLLM 146 tok/s | W1 |
 | w2_transformer_map.png | MiniTransformer 结构图 | W2 |
 | w2_attention_heatmap.png | 真实注意力权重热力图（因果掩码） | W2 |
+| w2_attention_one_query.png | 注意力手算例子的完整代码数据流 | W2 |
+| w2_attention_shape_flow.png | 注意力四维张量与两次矩阵乘的形状变化 | W2 |
 | w3_recompute_waste.png | naive 每步重算整段的浪费 | W3 |
 | w3_speedup.png | 实测：KV cache 快 3.0 倍 | W3 |
 | w3_memory_bill.png | KV cache 内存账（Qwen3-0.6B） | W3 |
@@ -141,8 +143,9 @@ minivllm/
 
 ### model/attention.py（W2）
 `make_causal_mask(q_len, kv_len=None)` → `(q_len, kv_len)` BoolTensor，True=允许看；
-`scaled_dot_product_attention(q, k, v, mask=None)` → `(out, weights)`，
-q/k/v 形状 `(B, H, L, D)`。
+`scaled_dot_product_attention(q, k, v, mask=None)` → `(out, weights)`；
+q 形状 `(B, H, q_len, D)`，k/v 形状 `(B, H, kv_len, D)`，
+out 形状 `(B, H, q_len, D)`，weights 形状 `(B, H, q_len, kv_len)`。
 
 ### model/transformer.py（W2/W3/W4）
 `MiniConfig(vocab_size=128, hidden_size=64, num_layers=2, num_heads=4, max_seq_len=128, mlp_ratio=4)`；
@@ -255,7 +258,7 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 
 | 文件 | 主题与要点 |
 |---|---|
-| 01-注意力-每个词都回头看看.md | 用"回头看前文"建直觉；Q/K/V 各管什么（查询/标签/内容）；scaled_dot_product_attention 四行数学；softmax 一句话公式+直觉 |
+| 01-注意力-每个词都回头看看.md | 用"回头看前文"建直觉；Q/K/V 各管什么（查询/标签/内容）；scaled_dot_product_attention 四行数学；softmax 一句话公式+直觉；图 w2_attention_one_query.png + w2_attention_shape_flow.png |
 | 02-因果掩码-不许偷看未来.md | make_causal_mask；q_len≠kv_len 的情形（为 W3 埋点）；手算 2x2 例子；跑 `pytest tests/test_w2.py -k "mask or sdpa"` |
 | 03-多头与残差-把零件拼成一层.md | 多头=多双眼睛；_split_heads/_merge_heads（已给出，讲透形状）；LayerNorm/残差一句话直觉；MLP |
 | 04-组装-MiniTransformer诞生.md | embedding（词→坐标）；堆叠 N 层；lm_head；跑 `pytest tests/test_w2.py`；图 w2_transformer_map.png + w2_attention_heatmap.png（我们自己模型的真实权重） |
