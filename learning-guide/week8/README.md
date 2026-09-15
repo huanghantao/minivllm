@@ -59,8 +59,8 @@ IMPL=reference .venv/bin/pytest tests/test_w8.py
 .venv/bin/python scripts/bench_naive_hf.py      # naive vs HF 自带 cache
 .venv/bin/python scripts/bench_minivllm.py      # 我们的引擎：b1 / b8 / TTFT
 
-# 真实 vLLM（同一个 .venv，注意两个环境变量，原因见第 5 章）
-HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 \
+# 真实 vLLM（同一个 .venv，注意三个环境变量，原因见第 5 章）
+HF_HUB_OFFLINE=1 VLLM_METAL_USE_PAGED_ATTENTION=0 VLLM_HOST_IP=127.0.0.1 \
   .venv/bin/python scripts/bench_vllm.py
 
 # 把教程构建成书
