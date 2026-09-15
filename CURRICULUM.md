@@ -102,6 +102,10 @@ minivllm/
 | w2_attention_heatmap.png | 真实注意力权重热力图（因果掩码） | W2 |
 | w2_attention_one_query.png | 注意力手算例子的完整代码数据流 | W2 |
 | w2_attention_shape_flow.png | 注意力四维张量与两次矩阵乘的形状变化 | W2 |
+| w2_causal_parallel_leak.png | 整段并行计算时未来 token 如何造成答案泄漏 | W2 |
+| w2_causal_mask_build.png | i/j 下标通过广播生成下三角 Boolean mask | W2 |
+| w2_causal_mask_pipeline.png | 2×2 分数经 -∞ 与 softmax 变为零权重的完整链条 | W2 |
+| w2_causal_cache_offset.png | KV cache 下长方形 mask 与 offset 的绝对位置换算 | W2 |
 | w3_recompute_waste.png | naive 每步重算整段的浪费 | W3 |
 | w3_speedup.png | 实测：KV cache 快 3.0 倍 | W3 |
 | w3_memory_bill.png | KV cache 内存账（Qwen3-0.6B） | W3 |

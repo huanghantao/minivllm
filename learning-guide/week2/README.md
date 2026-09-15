@@ -16,7 +16,7 @@ Week 1 里，我们把模型当成一个黑盒：`generate_naive` 每次把一�
 | 章节 | 一句话内容 |
 |---|---|
 | [第 1 章：注意力——每个词都回头看看](./01-注意力-每个词都回头看看.md) | Q/K/V 各管什么；注意力四行数学；softmax 的直觉 |
-| [第 2 章：因果掩码——不许偷看未来](./02-因果掩码-不许偷看未来.md) | `make_causal_mask`；手算 2×2；q_len≠kv_len 为 Week 3 埋点 |
+| [第 2 章：因果掩码——不许偷看未来](./02-因果掩码-不许偷看未来.md) | 并行计算为何会泄题；广播造 mask；`2→-∞→0`；KV cache 的 offset |
 | [第 3 章：多头与残差——把零件拼成一层](./03-多头与残差-把零件拼成一层.md) | 多头=多双眼睛；`_split_heads`/`_merge_heads`；LayerNorm/残差/MLP |
 | [第 4 章：组装——MiniTransformer 诞生](./04-组装-MiniTransformer诞生.md) | 嵌入、堆叠 N 层、lm_head；整机跑通，8 个测试全绿 |
 | [第 5 章：AI 联系——这就是 vLLM 里的 model](./05-AI联系-这就是vLLM里的model.md) | 对照真实 vLLM 的 `qwen3.py`；预告 Week 3 的重复计算问题 |
