@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>从 attention 到 logits：因果掩码交互实验</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #ffffff;
+      --surface: #f7f8fa;
+      --surface-strong: #eef1f5;
+      --text: #252a31;
+      --muted: #66707d;
+      --border: #d8dee7;
+      --blue: #1677b8;
+      --blue-soft: #eaf4fb;
+      --green: #218739;
+      --green-soft: #eaf7ed;
+      --orange: #d96b00;
+      --orange-soft: #fff3e5;
+      --red: #c92a2a;
+      --red-soft: #fff0f0;
+      --purple: #7a52ad;
+      --purple-soft: #f4effa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #17191d;
+        --surface: #22252a;
+        --surface-strong: #2a2e35;
+        --text: #edf0f4;
+        --muted: #aeb6c2;
+        --border: #414751;
+        --blue: #76b9e6;
+        --blue-soft: #1d3444;
+        --green: #7bc98b;
+        --green-soft: #203829;
+        --orange: #f0a45b;
+        --orange-soft: #402d1d;
+        --red: #f18888;
+        --red-soft: #432526;
+        --purple: #c1a0e8;
+        --purple-soft: #332a42;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 18px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(20px, 3vw, 28px);
+      line-height: 1.25;
+    }
+    p { line-height: 1.65; }
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    button {
+      min-height: 40px;
+      padding: 8px 13px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+    button:hover { background: var(--surface-strong); }
+    button:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 45%, transparent); }
+    button[aria-pressed="true"] {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: var(--bg);
+      font-weight: 600;
+    }
+    .stage {
+      min-height: 475px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+    .panel[hidden] { display: none; }
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+    }
+    .token-row,
+    .flow,
+    .comparison {
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .token {
+      min-width: 104px;
+      padding: 12px;
+      text-align: center;
+      border: 2px solid var(--blue);
+      border-radius: 8px;
+      background: var(--blue-soft);
+    }
+    .token.query {
+      border-color: var(--orange);
+      background: var(--orange-soft);
+    }
+    .token.answer {
+      border-color: var(--red);
+      background: var(--red-soft);
+    }
+    .token strong { display: block; font-size: 20px; }
+    .token small { color: var(--muted); }
+    .arrow {
+      display: grid;
+      place-items: center;
+      min-width: 34px;
+      font-size: 24px;
+      color: var(--muted);
+    }
+    .box {
+      flex: 1 1 180px;
+      max-width: 300px;
+      min-width: 170px;
+      padding: 13px;
+      border-radius: 9px;
+      background: var(--surface);
+      text-align: center;
+    }
+    .box.vector { background: var(--green-soft); border: 1px solid var(--green); }
+    .box.head { background: var(--orange-soft); border: 1px solid var(--orange); }
+    .box.logits { background: var(--purple-soft); border: 1px solid var(--purple); }
+    .box code { white-space: nowrap; }
+    .shape {
+      margin-top: 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .takeaway {
+      margin: 18px auto 0;
+      max-width: 820px;
+      padding: 12px 14px;
+      border-left: 4px solid var(--green);
+      background: var(--green-soft);
+      line-height: 1.6;
+    }
+    .logits-table {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .logits-table th,
+    .logits-table td {
+      padding: 10px 5px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .logits-table th:first-child,
+    .logits-table td:first-child { width: 90px; }
+    .last-row { background: var(--purple-soft); }
+    .winner {
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 700;
+      outline: 2px solid var(--green);
+      outline-offset: -2px;
+    }
+    .choice {
+      margin: 16px auto;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .choice button[aria-pressed="true"] {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+    .comparison { align-items: stretch; }
+    .lane {
+      flex: 1 1 300px;
+      max-width: 480px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+    }
+    .lane h3 { margin: 0 0 10px; }
+    .lane code {
+      display: block;
+      overflow-wrap: anywhere;
+      color: var(--blue);
+    }
+    .read-path {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+    }
+    .read-path.leak { background: var(--red-soft); color: var(--red); }
+    .read-path.safe { background: var(--green-soft); color: var(--green); }
+    .equation {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @media (max-width: 620px) {
+      body { padding: 12px; }
+      .stage { min-height: 600px; }
+      .arrow { transform: rotate(90deg); }
+      .flow { flex-direction: column; align-items: center; }
+      .box { width: 100%; max-width: none; }
+      .token { min-width: 72px; padding: 9px 5px; }
+      .logits-table { font-size: 13px; }
+      .logits-table th,
+      .logits-table td { padding: 8px 2px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>从 attention 到 logits，再到因果掩码</h1>
+    <p class="subtitle">沿同一份数据走四步；点击步骤切换。所有数字都来自图中的教学矩阵乘。</p>
+
+    <nav class="steps" aria-label="演示步骤">
+      <button type="button" data-step="0" aria-pressed="true">1　注意力输出</button>
+      <button type="button" data-step="1" aria-pressed="false">2　变成 logits</button>
+      <button type="button" data-step="2" aria-pressed="false">3　生成一个 token</button>
+      <button type="button" data-step="3" aria-pressed="false">4　训练为何会泄题</button>
+    </nav>
+
+    <div class="stage" aria-live="polite">
+      <section class="panel" data-panel="0">
+        <h2>第 1 步：Attention 只更新两个已有位置的向量</h2>
+        <div class="token-row" aria-label="两个输入 token">
+          <div class="token"><strong>我</strong><small>位置 0</small></div>
+          <div class="token query"><strong>爱</strong><small>位置 1</small></div>
+        </div>
+        <div class="flow" style="margin-top:18px">
+          <div class="box"><strong>Embedding</strong><br><code>(1, 2) → (1, 2, 4)</code></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="box vector"><strong>h₀：表示 [我]</strong><br><code>[0.2, 2.4, 0.1, −0.3]</code></div>
+          <div class="box vector"><strong>h₁：表示 [我, 爱]</strong><br><code>[0.1, 0.4, 3.2, 0.5]</code></div>
+        </div>
+        <p class="shape">Attention 前后都是 2 个位置；它没有生成第 3 个 token。</p>
+        <div class="takeaway"><strong>此时还没有候选词分数。</strong> h₀、h₁ 只是隐藏向量，不是“爱”和“吃”两个新词。</div>
+      </section>
+
+      <section class="panel" data-panel="1" hidden>
+        <h2>第 2 步：lm_head 给每个隐藏向量翻译出一整排词表分数</h2>
+        <div class="flow">
+          <div class="box vector"><strong>h₀、h₁</strong><br><code>每个长度 4</code></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="box head"><strong>lm_head</strong><br><code>Linear(4, 5)</code></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="box logits"><strong>logits</strong><br><code>形状 (1, 2, 5)</code></div>
+        </div>
+        <table class="logits-table" aria-label="每个位置的词表 logits" style="margin-top:20px">
+          <thead><tr><th>位置</th><th>我</th><th>爱</th><th>吃</th><th>苹果</th><th>EOS</th></tr></thead>
+          <tbody>
+            <tr><th>位置 0</th><td>0.2</td><td class="winner">2.4</td><td>0.1</td><td>−0.3</td><td>−2.4</td></tr>
+            <tr class="last-row"><th>位置 1</th><td>0.1</td><td>0.4</td><td class="winner">3.2</td><td>0.5</td><td>−4.2</td></tr>
+          </tbody>
+        </table>
+        <div class="takeaway">序列仍然只有 2 个位置；变化的是每个位置现在都有 <strong>5 个候选 token 的分数</strong>。</div>
+      </section>
+
+      <section class="panel" data-panel="2" hidden>
+        <h2>第 3 步：generate_naive 只取最后一排，才真正选出一个新 token</h2>
+        <div class="flow">
+          <div class="box logits"><strong>logits[0, −1, :]</strong><br><code>[0.1, 0.4, 3.2, 0.5, −4.2]</code></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="box head"><strong>argmax</strong><br>最大下标 = 2</div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="token answer"><strong>吃</strong><small>新 token</small></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="box"><strong>[我, 爱, 吃]</strong><br>拼回 input_ids</div>
+        </div>
+        <div class="takeaway"><strong>序列长度到这里才从 2 变成 3。</strong> Attention 和 lm_head 都不会自行把 token 接到句尾；这是生成循环的工作。</div>
+      </section>
+
+      <section class="panel" data-panel="3" hidden>
+        <h2>第 4 步：训练调用和生成调用不是同一个 input_ids</h2>
+        <div class="choice" role="group" aria-label="是否使用因果掩码">
+          <button type="button" data-mask="off" aria-pressed="true">无掩码</button>
+          <button type="button" data-mask="on" aria-pressed="false">有因果掩码</button>
+        </div>
+        <div class="comparison">
+          <article class="lane">
+            <h3>真实生成 A</h3>
+            <code>A = model([我, 爱])[0, 1, :]</code>
+            <div class="token-row" style="margin-top:14px">
+              <div class="token"><strong>我</strong><small>位置 0</small></div>
+              <div class="token query"><strong>爱</strong><small>位置 1</small></div>
+            </div>
+            <div class="read-path safe">h₁ 只能汇总 [我, 爱]</div>
+          </article>
+          <article class="lane">
+            <h3>并行训练 B</h3>
+            <code>B = model([我, 爱, 吃, 苹果])[0, 1, :]</code>
+            <div class="token-row" style="margin-top:14px">
+              <div class="token"><strong>我</strong><small>0</small></div>
+              <div class="token query"><strong>爱</strong><small>1</small></div>
+              <div class="token answer"><strong>吃</strong><small>2 · 答案</small></div>
+              <div class="token"><strong>苹果</strong><small>3</small></div>
+            </div>
+            <div class="read-path leak" data-mask-result>h₁ 可以读取 V吃：attention[1, 2] 可能接近 1</div>
+          </article>
+        </div>
+        <div class="equation" data-equation>无掩码：B 可能依赖“吃”，所以训练的 B ≠ 生成的 A</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const stepButtons = [...document.querySelectorAll('[data-step]')];
+    const panels = [...document.querySelectorAll('[data-panel]')];
+    const maskButtons = [...document.querySelectorAll('[data-mask]')];
+    const maskResult = document.querySelector('[data-mask-result]');
+    const equation = document.querySelector('[data-equation]');
+
+    function showStep(index) {
+      stepButtons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+      panels.forEach((panel, i) => { panel.hidden = i !== index; });
+    }
+
+    function setMask(enabled) {
+      maskButtons.forEach(button => {
+        button.setAttribute('aria-pressed', String((button.dataset.mask === 'on') === enabled));
+      });
+      maskResult.classList.toggle('leak', !enabled);
+      maskResult.classList.toggle('safe', enabled);
+      if (enabled) {
+        maskResult.textContent = 'mask[1, 2] = False → attention[1, 2] = 0；h₁ 仍只汇总 [我, 爱]';
+        equation.textContent = '有因果掩码：训练位置 1 与真实生成面对相同前缀，所以 A = B';
+      } else {
+        maskResult.textContent = 'h₁ 可以读取 V吃：attention[1, 2] 可能接近 1';
+        equation.textContent = '无掩码：B 可能依赖“吃”，所以训练的 B ≠ 生成的 A';
+      }
+    }
+
+    stepButtons.forEach((button, index) => button.addEventListener('click', () => showStep(index)));
+    maskButtons.forEach(button => button.addEventListener('click', () => setMask(button.dataset.mask === 'on')));
+  </script>
+</body>
+</html>

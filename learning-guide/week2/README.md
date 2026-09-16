@@ -15,8 +15,8 @@ Week 1 里，我们把模型当成一个黑盒：`generate_naive` 每次把一�
 
 | 章节 | 一句话内容 |
 |---|---|
-| [第 1 章：注意力——每个词都回头看看](./01-注意力-每个词都回头看看.md) | Q/K/V 各管什么；注意力四行数学；softmax 的直觉 |
-| [第 2 章：因果掩码——不许偷看未来](./02-因果掩码-不许偷看未来.md) | 并行计算为何会泄题；广播造 mask；`2→-∞→0`；KV cache 的 offset |
+| [第 1 章：注意力——每个词都回头看看](./01-注意力-每个词都回头看看.md) | Q/K/V 与四行数学；Attention 隐藏向量怎样经 lm_head 变成 logits |
+| [第 2 章：因果掩码——不许偷看未来](./02-因果掩码-不许偷看未来.md) | 先分清生成与训练两种 forward，再看泄题、mask、`2→-∞→0` 与 offset |
 | [第 3 章：多头与残差——把零件拼成一层](./03-多头与残差-把零件拼成一层.md) | 多头=多双眼睛；`_split_heads`/`_merge_heads`；LayerNorm/残差/MLP |
 | [第 4 章：组装——MiniTransformer 诞生](./04-组装-MiniTransformer诞生.md) | 嵌入、堆叠 N 层、lm_head；整机跑通，8 个测试全绿 |
 | [第 5 章：AI 联系——这就是 vLLM 里的 model](./05-AI联系-这就是vLLM里的model.md) | 对照真实 vLLM 的 `qwen3.py`；预告 Week 3 的重复计算问题 |
@@ -28,11 +28,13 @@ Week 1 里，我们把模型当成一个黑盒：`generate_naive` 每次把一�
 
 1. 一个**你亲手写的、能跑的最小 GPT**：输入 `(B, L)` 的 token id，输出
    `(B, L, vocab)` 的 logits，每个位置都在预测下一个词；
-2. 对注意力机制的**肌肉记忆**：`softmax(QKᵀ/√d)V` 这四行，你能默写、能手算、
+2. 一条不会再混淆的完整数据流：Attention 为每个位置更新隐藏向量，`lm_head` 为每个
+   隐藏向量产出整排词表 logits，生成循环最后才从最后一排选出一个新 token；
+3. 对注意力机制的**肌肉记忆**：`softmax(QKᵀ/√d)V` 这四行，你能默写、能手算、
    能说出每一步的形状；
-3. 看懂真实 vLLM 模型文件（`vllm/model_executor/models/qwen3.py`）的**基本盘**——
+4. 看懂真实 vLLM 模型文件（`vllm/model_executor/models/qwen3.py`）的**基本盘**——
    你会发现那里的类名、结构和你写的几乎一一对应；
-4. `tests/test_w2.py` 全绿，包括那条最有成就感的 `test_transformer_causality`：
+5. `tests/test_w2.py` 全绿，包括那条最有成就感的 `test_transformer_causality`：
    改掉未来的 token，过去位置的预测纹丝不动——因果性是你亲手焊死的。
 
 ## 常用命令速查

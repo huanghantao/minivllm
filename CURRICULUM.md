@@ -102,6 +102,8 @@ minivllm/
 | w2_attention_heatmap.png | 真实注意力权重热力图（因果掩码） | W2 |
 | w2_attention_one_query.png | 注意力手算例子的完整代码数据流 | W2 |
 | w2_attention_shape_flow.png | 注意力四维张量与两次矩阵乘的形状变化 | W2 |
+| w2_hidden_to_logits_bridge.png | input_ids → Attention 隐藏向量 → lm_head → logits → 新 token 的完整桥接 | W2 |
+| w2_training_vs_generation.png | 同一位置 logits 在 generate 与整句训练 forward 中的输入差异 | W2 |
 | w2_causal_parallel_leak.png | 整段并行计算时未来 token 如何造成答案泄漏 | W2 |
 | w2_causal_mask_build.png | i/j 下标通过广播生成下三角 Boolean mask | W2 |
 | w2_causal_mask_pipeline.png | 2×2 分数经 -∞ 与 softmax 变为零权重的完整链条 | W2 |
@@ -124,6 +126,17 @@ minivllm/
 - 若某章确实需要新图：可以**新增** `figures/gen_wXdY_*.py` 脚本（模仿现有脚本：
   `sys.path.insert` 开头、用 `figures._common` 的助手、中文字体已配置），
   运行生成 PNG 后引用；**生图脚本必须保留在仓库里**，新脚本务必实际运行成功再交付。
+
+### 交互演示政策
+
+- 交互 HTML 只做“可反复操作的第二层解释”，**不能承载正文唯一的信息**；关闭 JavaScript、
+  打印成 PDF 或只看仓库 Markdown 时，静态 PNG 与文字必须已经足够完成学习目标。
+- 交互文件放在对应章节的 `learning-guide/weekN/interactive/` 下，使用自包含 HTML/CSS/JS，
+  不依赖外部服务；正文用同源 `<iframe sandbox="allow-scripts">` 嵌入，并同时给出单独打开链接。
+- 每个交互只解决一个认知冲突，采用 3-5 个顺序步骤；按钮必须可键盘操作，动态结论使用
+  `aria-live`，移动端 320px 宽不能溢出。
+- 图、正文与交互必须使用同一组例子和同一套术语。交互是“让读者亲手验证正文结论”，
+  不是再开一条叙事支线。
 
 ## 5. 章节文件命名（必须与 SUMMARY.md 完全一致）
 
@@ -266,8 +279,8 @@ W3 小模型实测：KV cache 快 3.0 倍（4 层 hidden=256 模型，CPU）。
 
 | 文件 | 主题与要点 |
 |---|---|
-| 01-注意力-每个词都回头看看.md | 一组小数字贯穿信息汇总、Q/K/V、点积缩放与 softmax；先二维代码再四维张量，最后总结公式；实现 scaled_dot_product_attention；跑 `pytest tests/test_w2.py -k "sdpa and not mask"`；图 w2_attention_one_query.png + w2_attention_shape_flow.png |
-| 02-因果掩码-不许偷看未来.md | make_causal_mask；q_len≠kv_len 的情形（为 W3 埋点）；手算 2x2 例子；跑 `pytest tests/test_w2.py -k "mask or sdpa"` |
+| 01-注意力-每个词都回头看看.md | 一组小数字贯穿信息汇总、Q/K/V、点积缩放与 softmax；先二维代码再四维张量；最后必须补齐 Attention out → 隐藏向量 → lm_head → logits → generate 的概念桥；实现 scaled_dot_product_attention；图 w2_attention_one_query.png + w2_attention_shape_flow.png + w2_hidden_to_logits_bridge.png |
+| 02-因果掩码-不许偷看未来.md | 先把 `model(prefix)` 的生成调用与 `model(full_sentence)` 的训练调用并排，讲清 shift labels 和“同一位置 logits”的差异，再解释无掩码如何经 V 与 lm_head 抄答案；之后实现 make_causal_mask、手算 2x2、讲 q_len≠kv_len；包含静态图与 causal-mask-lab.html 交互；跑 `pytest tests/test_w2.py -k "mask or sdpa"` |
 | 03-多头与残差-把零件拼成一层.md | 多头=多双眼睛；_split_heads/_merge_heads（已给出，讲透形状）；LayerNorm/残差一句话直觉；MLP |
 | 04-组装-MiniTransformer诞生.md | embedding（词→坐标）；堆叠 N 层；lm_head；跑 `pytest tests/test_w2.py`；图 w2_transformer_map.png + w2_attention_heatmap.png（我们自己模型的真实权重） |
 | 05-AI联系-这就是vLLM里的model.md | 对照 `vllm/model_executor/models/`；预告 Week 3 的重复计算问题 |
